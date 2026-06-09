@@ -3,11 +3,14 @@ import type { SelectionItem } from './OverlayRenderer'
 import { ElementPicker } from './ElementPicker'
 import { extractElementInfo } from './StyleExtractor'
 import { captureElements, downloadDataUrl } from './ExportCapture'
+import { ElementRegistry } from './ElementRegistry'
+import { buildChildNodes, buildSpineTree } from './TreeBuilder'
 import type { ElementInfo } from '~/types/inspector'
 
 export class InspectorManager {
   private overlay = new OverlayRenderer()
   private picker: ElementPicker
+  private registry = new ElementRegistry()
   private active = false
   private selectedElements: Element[] = []
   private selectedInfos: ElementInfo[] = []
@@ -51,6 +54,7 @@ export class InspectorManager {
     this.overlay.hide()
     this.picker.deactivate()
     this.unbindScrollResize()
+    this.registry.clear()
     this.broadcastState()
   }
 
@@ -88,6 +92,7 @@ export class InspectorManager {
     this.overlay.updateHover(null)
     this.syncOverlaySelections()
     this.broadcastSelection()
+    this.broadcastTree()
   }
 
   private syncOverlaySelections() {
@@ -102,6 +107,21 @@ export class InspectorManager {
     browser.runtime.sendMessage({
       type: 'element-selected',
       data: { elements: this.selectedInfos },
+    }).catch(() => {})
+  }
+
+  private broadcastTree() {
+    if (this.selectedElements.length === 0)
+      return
+    const el = this.selectedElements[this.selectedElements.length - 1]
+    const tree = buildSpineTree(el, this.registry)
+    const selectedNodeIds = this.selectedElements
+      .map(e => this.registry.getId(e))
+      .filter((id): id is number => id !== undefined)
+    tree.selectedNodeIds = selectedNodeIds
+    browser.runtime.sendMessage({
+      type: 'dom-tree-data',
+      data: { tree },
     }).catch(() => {})
   }
 
@@ -181,6 +201,37 @@ export class InspectorManager {
 
       if (msg.type === 'get-inspector-state')
         return Promise.resolve({ active: this.active, hasSelection: this.selectedElements.length > 0, selectionCount: this.selectedElements.length })
+
+      if (msg.type === 'dom-tree-hover-node') {
+        const nodeId = msg.data?.nodeId
+        if (nodeId == null) {
+          this.overlay.updateHover(null)
+        }
+        else {
+          const el = this.registry.getElement(nodeId)
+          if (el)
+            this.handleHover(el)
+          else
+            this.overlay.updateHover(null)
+        }
+        return Promise.resolve({ ok: true })
+      }
+
+      if (msg.type === 'dom-tree-select-node') {
+        const el = this.registry.getElement(msg.data?.nodeId)
+        if (el) {
+          this.handleSelect(el, !!msg.data?.multi)
+          return Promise.resolve({ ok: true })
+        }
+        return Promise.resolve({ ok: false, error: 'Element not found' })
+      }
+
+      if (msg.type === 'dom-tree-expand-node') {
+        const el = this.registry.getElement(msg.data?.nodeId)
+        if (el)
+          return Promise.resolve({ children: buildChildNodes(el, this.registry) })
+        return Promise.resolve({ children: [] })
+      }
     })
   }
 }

@@ -10,6 +10,7 @@ import BorderSection from './BorderSection.vue'
 import EffectsSection from './EffectsSection.vue'
 import DomPath from './DomPath.vue'
 import ExportButton from './ExportButton.vue'
+import DomTreeView from './DomTreeView.vue'
 
 const { selectedElements, activeElement, activeIndex, setActiveIndex, connected } = useElementData()
 const toggling = ref(false)
@@ -65,6 +66,7 @@ async function toggleInspector() {
 
     <template v-if="activeElement">
       <HeaderSection :info="activeElement" />
+      <DomTreeView />
       <LayoutSection
         :layout="activeElement.computedStyles.layout"
         :x="activeElement.rect.x"

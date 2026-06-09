@@ -132,3 +132,17 @@ export interface InspectorState {
   active: boolean
   hasSelection: boolean
 }
+
+export interface DomTreeNode {
+  nodeId: number
+  tag: string
+  idAttr: string
+  classes: string[]
+  childCount: number
+  children?: DomTreeNode[]
+}
+
+export interface DomTreeData {
+  root: DomTreeNode
+  selectedNodeIds: number[]
+}
