@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { activeFrameId } from '../composables/useActiveFrame'
 
 defineProps<{
   count: number
@@ -21,7 +22,7 @@ async function exportElement() {
       throw new Error('No active tab')
     const result = (await browser.tabs.sendMessage(tabId, {
       type: 'export-element',
-    })) as any
+    }, { frameId: activeFrameId.value })) as any
     if (!result?.success)
       throw new Error(result?.error || 'Export failed')
   }

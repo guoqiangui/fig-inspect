@@ -1,13 +1,17 @@
 import { onMounted, onUnmounted, ref } from 'vue'
+import { activeFrameId } from './useActiveFrame'
 import type { DomTreeNode } from '~/types/inspector'
 
 export function useDomTree() {
   const treeRoot = ref<DomTreeNode | null>(null)
   const selectedNodeIds = ref<number[]>([])
 
-  function listener(message: unknown): undefined {
+  function listener(message: unknown, sender: any): undefined {
     const msg = message as { type?: string, data?: any }
     if (msg.type === 'dom-tree-data') {
+      const fromFrame = sender?.frameId ?? 0
+      if (fromFrame !== activeFrameId.value)
+        return undefined
       treeRoot.value = msg.data.tree.root
       selectedNodeIds.value = msg.data.tree.selectedNodeIds
     }
@@ -32,7 +36,7 @@ export function useDomTree() {
     await browser.tabs.sendMessage(tabId, {
       type: 'dom-tree-select-node',
       data: { nodeId, multi },
-    })
+    }, { frameId: activeFrameId.value })
   }
 
   async function expandNode(nodeId: number) {
@@ -42,7 +46,7 @@ export function useDomTree() {
     const response = await browser.tabs.sendMessage(tabId, {
       type: 'dom-tree-expand-node',
       data: { nodeId },
-    }) as { children: DomTreeNode[] }
+    }, { frameId: activeFrameId.value }) as { children: DomTreeNode[] }
 
     if (response?.children && treeRoot.value) {
       const target = findNodeById(treeRoot.value, nodeId)
@@ -66,7 +70,7 @@ export function useDomTree() {
     await browser.tabs.sendMessage(tabId, {
       type: 'dom-tree-hover-node',
       data: { nodeId },
-    }).catch(() => {})
+    }, { frameId: activeFrameId.value }).catch(() => {})
   }
 
   onMounted(() => {

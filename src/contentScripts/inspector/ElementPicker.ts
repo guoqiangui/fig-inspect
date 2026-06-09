@@ -1,4 +1,4 @@
-export type ElementPickerHoverCallback = (el: Element) => void
+export type ElementPickerHoverCallback = (el: Element | null) => void
 export type ElementPickerSelectCallback = (el: Element, multiSelect: boolean) => void
 
 export class ElementPicker {
@@ -33,6 +33,7 @@ export class ElementPicker {
       return
     this.active = true
     document.addEventListener('mousemove', this.handleMouseMove, true)
+    document.addEventListener('mouseleave', this.handleMouseLeave)
     document.addEventListener('click', this.handleClick, true)
     document.addEventListener('keydown', this.handleKeyDown, true)
     document.body.style.cursor = 'crosshair'
@@ -44,6 +45,7 @@ export class ElementPicker {
     this.active = false
     cancelAnimationFrame(this.rafId)
     document.removeEventListener('mousemove', this.handleMouseMove, true)
+    document.removeEventListener('mouseleave', this.handleMouseLeave)
     document.removeEventListener('click', this.handleClick, true)
     document.removeEventListener('keydown', this.handleKeyDown, true)
     document.body.style.cursor = ''
@@ -57,13 +59,20 @@ export class ElementPicker {
     this.rafId = requestAnimationFrame(() => this.processHover())
   }
 
+  private handleMouseLeave = () => {
+    cancelAnimationFrame(this.rafId)
+    if (this.lastHoveredElement !== null) {
+      this.lastHoveredElement = null
+      this.hoverCallback?.(null)
+    }
+  }
+
   private processHover() {
     const el = this.getElementAt(this.lastMouseX, this.lastMouseY)
     if (el === this.lastHoveredElement)
       return
     this.lastHoveredElement = el
-    if (el)
-      this.hoverCallback?.(el)
+    this.hoverCallback?.(el)
   }
 
   private handleClick = (e: MouseEvent) => {
@@ -90,6 +99,8 @@ export class ElementPicker {
         continue
       if (el === document.documentElement || el === document.body)
         continue
+      if (el.tagName === 'IFRAME')
+        return null
       return el
     }
     return null

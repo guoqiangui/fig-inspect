@@ -58,7 +58,11 @@ export class InspectorManager {
     this.broadcastState()
   }
 
-  private handleHover(el: Element) {
+  private handleHover(el: Element | null) {
+    if (!el) {
+      this.overlay.updateHover(null)
+      return
+    }
     const rect = el.getBoundingClientRect()
     this.overlay.updateHover({
       x: rect.x,
@@ -185,6 +189,15 @@ export class InspectorManager {
 
       if (msg.type === 'toggle-inspector') {
         this.toggle(msg.data?.active)
+        return Promise.resolve({ ok: true })
+      }
+
+      if (msg.type === 'clear-selection') {
+        this.selectedElements = []
+        this.selectedInfos = []
+        this.overlay.updateSelections([])
+        this.overlay.updateHover(null)
+        this.registry.clear()
         return Promise.resolve({ ok: true })
       }
 

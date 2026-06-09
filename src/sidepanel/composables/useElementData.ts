@@ -1,4 +1,5 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { activeFrameId } from './useActiveFrame'
 import type { ElementInfo } from '~/types/inspector'
 
 export function useElementData() {
@@ -17,9 +18,15 @@ export function useElementData() {
     activeIndex.value = idx
   }
 
-  function listener(message: unknown, _sender: any, _sendResponse: any): undefined {
+  function listener(message: unknown, sender: any, _sendResponse: any): undefined {
     const msg = message as { type?: string, data?: any }
     if (msg.type === 'element-selected') {
+      const newFrameId = sender?.frameId ?? 0
+      const tabId = sender?.tab?.id
+      if (newFrameId !== activeFrameId.value && tabId != null) {
+        browser.tabs.sendMessage(tabId, { type: 'clear-selection' }, { frameId: activeFrameId.value }).catch(() => {})
+      }
+      activeFrameId.value = newFrameId
       const elements = msg.data.elements as ElementInfo[]
       selectedElements.value = elements
       if (activeIndex.value >= elements.length)
