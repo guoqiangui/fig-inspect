@@ -66,6 +66,8 @@ export function useElementData() {
   onMounted(() => {
     browser.runtime.onMessage.addListener(listener)
     browser.tabs.onActivated.addListener(onTabActivated)
+    // 侧边栏打开时主动同步一次状态，避免错过 content script 的状态广播
+    queryCurrentTab()
   })
 
   onUnmounted(() => {
