@@ -78,10 +78,6 @@ The inspector uses **native `browser.runtime.sendMessage` / `browser.tabs.sendMe
 
 Permissions: `tabs`, `storage`, `activeTab`, `sidePanel`, `downloads`. Host permissions: `<all_urls>`.
 
-### Content script build note
-
-`vite.config.content.mts` includes an `escapeNonCharacters` plugin that replaces U+FFFE/U+FFFF with `￾`/`￿` escapes. Chrome rejects content scripts containing these Unicode noncharacters. This is needed because `@zumer/snapdom` includes them in a regex.
-
 ### Auto-imports
 
 - Vue APIs and `browser` (from `webextension-polyfill`) are auto-imported via `unplugin-auto-import`

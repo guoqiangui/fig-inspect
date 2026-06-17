@@ -4,29 +4,11 @@ import { sharedConfig } from './vite.config.mjs'
 import { isDev, r } from './scripts/utils'
 import packageJson from './package.json'
 
-function escapeNonCharacters(): Plugin {
-  return {
-    name: 'escape-non-characters',
-    enforce: 'post',
-    generateBundle(_, bundle) {
-      for (const key of Object.keys(bundle)) {
-        const chunk = bundle[key]
-        if (chunk.type === 'chunk') {
-          chunk.code = chunk.code
-            .replace(/￾/g, '\\uFFFE')
-            .replace(/￿/g, '\\uFFFF')
-        }
-      }
-    },
-  }
-}
-
 // bundling the content script using Vite
 export default defineConfig({
   ...sharedConfig,
   plugins: [
     ...(sharedConfig.plugins || []) as Plugin[],
-    escapeNonCharacters(),
   ],
   define: {
     '__DEV__': isDev,
