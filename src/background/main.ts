@@ -1,9 +1,3 @@
-if (import.meta.hot) {
-  // @ts-expect-error for background HMR
-  import('/@vite/client')
-  import('./contentScriptHMR')
-}
-
 // @ts-expect-error missing types
 browser.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
