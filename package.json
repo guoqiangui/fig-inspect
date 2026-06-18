@@ -1,10 +1,31 @@
 {
-  "name": "vitesse-webext",
-  "displayName": "Vitesse WebExt",
+  "name": "fig-inspect",
+  "displayName": "Fig Inspect",
   "version": "0.0.1",
   "private": true,
   "packageManager": "pnpm@9.7.1",
-  "description": "[description]",
+  "description": "一款 Figma 风格的网页元素检查器浏览器扩展 —— 悬停高亮、点击选取、查看计算后的 CSS 属性，并将选中元素导出为 PNG。",
+  "license": "MIT",
+  "homepage": "https://github.com/guoqiangui/fig-inspect#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guoqiangui/fig-inspect.git"
+  },
+  "bugs": {
+    "url": "https://github.com/guoqiangui/fig-inspect/issues"
+  },
+  "keywords": [
+    "browser-extension",
+    "chrome-extension",
+    "firefox-extension",
+    "manifest-v3",
+    "inspector",
+    "css-inspector",
+    "figma",
+    "devtools",
+    "vue",
+    "vite"
+  ],
   "scripts": {
     "dev": "npm run clear && cross-env NODE_ENV=development run-p dev:*",
     "dev-firefox": "npm run clear && cross-env NODE_ENV=development EXTENSION=firefox run-p dev:*",
